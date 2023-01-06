@@ -1,0 +1,3 @@
+simpleaudio
+requests
+# requests-futures
