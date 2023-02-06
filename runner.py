@@ -28,26 +28,26 @@ class Runner:
 
     async def text_thread(self):
         # print('text thread running.')
-        session = requests.Session()
+        with requests.Session() as session:
 
-        while True:
-            while len(self.text_queue) == 0:
-                await asyncio.sleep(.1)
+            while True:
+                while len(self.text_queue) == 0:
+                    await asyncio.sleep(.1)
 
-            text = self.text_queue.popleft()
-            data = urllib.parse.quote(text)
+                text = self.text_queue.popleft()
+                data = urllib.parse.quote(text)
 
-            # print('getting accents', text)
-            accent_phrases = session.post(f"http://localhost:50021/accent_phrases?text={data}&speaker={self.speaker_id}").content
-            query = b'{"accent_phrases":' + accent_phrases + b',"speedScale":1,"pitchScale":0,"intonationScale":1,"volumeScale":1,"prePhonemeLength":0.1,"postPhonemeLength":0.1,"outputSamplingRate":24000,"outputStereo":true,"kana":""}'
+                # print('getting accents', text)
+                accent_phrases = session.post(f"http://localhost:50021/accent_phrases?text={data}&speaker={self.speaker_id}").content
+                query = b'{"accent_phrases":' + accent_phrases + b',"speedScale":1,"pitchScale":0,"intonationScale":1,"volumeScale":1,"prePhonemeLength":0.1,"postPhonemeLength":0.1,"outputSamplingRate":24000,"outputStereo":true,"kana":""}'
 
-            # print(query)
+                # print(query)
 
-            # print('getting wav', text)
-            wavefmt = session.post(f"http://localhost:50021/synthesis?speaker={self.speaker_id}&enable_interrogative_upspeak=true", data=query, headers={"Content-Type": "application/json"}).content
-            self.wave_queue.append(wavefmt)
+                # print('getting wav', text)
+                wavefmt = session.post(f"http://localhost:50021/synthesis?speaker={self.speaker_id}&enable_interrogative_upspeak=true", data=query, headers={"Content-Type": "application/json"}).content
+                self.wave_queue.append(wavefmt)
 
-            # print('requesting playback:', text)
+                # print('requesting playback:', text)
 
     def enqueue(self, text):
         # print('enqueuing:', text)
