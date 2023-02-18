@@ -1,2 +1,8 @@
 __pycache__
 env
+
+.vscode
+
+audio.wav
+query.json
+text.txt

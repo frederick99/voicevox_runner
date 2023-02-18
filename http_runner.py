@@ -1,40 +1,43 @@
-import asyncio
+"""
+HTTP runner
+"""
+
 import http
 import http.server
 import runner
 
+
 class HttpRunner(runner.Runner):
-    def __init__(self, port=5001):
-        super().__init__()
+    """HTTP runner class"""
+
+    def __init__(self, speaker_id=None, port=5001):
+        super().__init__(speaker_id)
         self.host = '0.0.0.0'
         self.port = port
 
-        http_runner = self
-        class TTSRequestHandler(http.server.BaseHTTPRequestHandler):
-            def log_message(*_): ...
-            def do_POST(self):
-                if n := int(self.headers.get('Content-Length', 0)):
-                    encoded = self.rfile.read(n)
-                    decoded = encoded.decode('utf-8', 'surrogateescape')
-                    print('got:', decoded)
-                    http_runner.enqueue(decoded)
-                self.send_response(http.HTTPStatus.OK)
-                self.send_header('Content-Length', 0)
-                self.end_headers()
+    def tts_loop(self):
+        try:
+            http_runner = self
 
-        self.server = http.server.ThreadingHTTPServer((self.host, self.port), TTSRequestHandler)
-        print(f"Serving HTTP on {self.host} port {self.port} "
-              f"(http://{self.host}:{self.port}/) ...")
+            class TTSRequestHandler(http.server.BaseHTTPRequestHandler):
+                """Text-to-speech request handler"""
+                def log_message(self, *_): ...
 
-    def run(self):
-        async def _run():
-            wave_task = asyncio.create_task(self.wave_thread())
-            text_task = asyncio.create_task(self.text_thread())
-            http_task = asyncio.to_thread(self.server.serve_forever)
-            await asyncio.gather(wave_task, text_task, http_task)
+                # pylint: disable=invalid-name
+                def do_POST(self):
+                    """Handle POST request"""
+                    if length := int(self.headers.get('Content-Length', 0)):
+                        encoded = self.rfile.read(length)
+                        decoded = encoded.decode('utf-8', 'surrogateescape')
+                        print('got:', decoded)
+                        http_runner.queue_tts(decoded)
+                    self.send_response(http.HTTPStatus.OK)
+                    self.send_header('Content-Length', 0)
+                    self.end_headers()
 
-        try: asyncio.run(_run())
+            server = http.server.ThreadingHTTPServer((self.host, self.port), TTSRequestHandler)
+            print(f"Serving HTTP at http://{self.host}:{self.port}/ ...")
+            server.serve_forever()
         except (KeyboardInterrupt, RuntimeError):
             print('shutting down http server...')
-            self.server.shutdown()
-#RuntimeError('Event loop is closed')
+            server.shutdown()

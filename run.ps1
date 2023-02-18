@@ -26,10 +26,10 @@ $payload = '{"accent_phrases":' + $accent_phrases + ',"speedScale":1,"pitchScale
 echo $payload > query.json
 
 curl.exe -s `
-    -H "Content-Type: application/json" `
     -X POST `
-    -d '@query.json' `
+    -H "Content-Type: application/json" `
     "localhost:50021/synthesis?speaker=$speaker_id&enable_interrogative_upspeak=true" `
+    -d '@query.json' `
     -o audio.wav
 
 if ($?) { cmdmp3win.exe .\audio.wav }

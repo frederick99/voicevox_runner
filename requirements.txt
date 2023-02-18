@@ -1,3 +1,4 @@
 simpleaudio
 requests
 # requests-futures
+aioconsole
