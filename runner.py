@@ -2,6 +2,7 @@
 Voicevox runner
 """
 
+import abc
 import logging
 import multiprocessing
 import urllib.parse
@@ -16,8 +17,8 @@ logger.setLevel(logging.INFO)
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-class Runner:
-    """Voicevox runner base class"""
+class Runner(abc.ABC):
+    """Voicevox runner abstract base class"""
 
     def __init__(self, speaker_id=None):
         self.speaker_id = speaker_id if speaker_id else 25
@@ -79,9 +80,10 @@ class Runner:
         wave_thread.start()
         text_thread.start()
 
+    @abc.abstractmethod
     def tts_loop(self):
         """TTS loop"""
-        return NotImplementedError()
+        return
 
     def main_loop(self):
         """Runner main loop"""
